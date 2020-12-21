@@ -72,7 +72,9 @@ def Execute(cmd):
             print(detail)
         return False
 
-
+#
+# 函数：获取软件运行命令
+#
 def get_run_command(pkgname):
     # 对一些特殊软件单独处理
 
@@ -82,12 +84,12 @@ def get_run_command(pkgname):
     if pkgname in PKG_NAME:
         pkgname=PKG_NAME[pkgname]
 
+
     desktopfile = "/usr/share/applications/" + pkgname + ".desktop"
 
     if os.path.exists(desktopfile):
         DeskTopEntry = xdg.DesktopEntry.DesktopEntry(desktopfile)
         fullcmd = DeskTopEntry.getExec()
-
     if fullcmd == "":
         user_desktop_path = os.path.join(os.path.expanduser("~"), ".local", "share", "applications")
         if(os.path.exists(user_desktop_path) == False):

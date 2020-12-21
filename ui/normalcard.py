@@ -29,13 +29,21 @@ from PyQt5.QtCore import *
 from ui.uknormalcard import Ui_NormalCard
 from ui.starwidget import StarWidget
 from utils import run
+from utils.debfile import DebFile
 from utils import commontools
 from models.enums import Signals, setLongTextToElideFormat, PkgStates, PageStates,AppActions
 from models.globals import Globals
 from models.apkinfo import ApkInfo
+from models.application import Application
 
 import gettext
-gettext.textdomain("ubuntu-kylin-software-center")
+LOCALE = os.getenv("LANG")
+if "bo" in LOCALE:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale-langpack")
+    gettext.textdomain("kylin-software-center")
+else:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale")
+    gettext.textdomain("ubuntu-kylin-software-center")
 _ = gettext.gettext
 
 class NormalCard(QWidget,Signals):
@@ -59,6 +67,11 @@ class NormalCard(QWidget,Signals):
         self.ui.btn.setFocusPolicy(Qt.NoFocus)
         self.ui.btnDetail.setFocusPolicy(Qt.NoFocus)
         self.ui.btnDetail.setStyleSheet("QPushButton{border:0px;background-color:transparent;}")
+        self.ui.btnCancel.setFocusPolicy(Qt.NoFocus)
+        self.ui.btnCancel.setStyleSheet("QPushButton{background-image:url('res/cancel_1.png');border:0px;}QPushButton:hover{background:url('res/cancel_2.png');}QPushButton:pressed{background:url('res/cancel_2.png');}")
+        self.ui.btnCancel.raise_()
+        self.ui.btnCancel.clicked.connect(self.slot_click_cancel)
+
         # self.ui.btnDetail.setCursor(Qt.PointingHandCursor)
 
         # self.ui.description.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -104,7 +117,7 @@ class NormalCard(QWidget,Signals):
 
         # self.ui.baseWidget.setStyleSheet("QWidget{border:0px;}")
         self.ui.name.setStyleSheet("QLabel{font-size:14px;color:#000000;background-color:transparent;}")
-        # self.ui.progressBarname.setStyleSheet("QLabel{font-size:14px;color:#000000;background:transparent;}")
+        self.ui.progressBarname.setStyleSheet("QLabel{font-size:14px;color:#000000;background:transparent;}")
         # self.ui.named.setStyleSheet("QLabel{font-size:13px;font-weight:bold;color:#666666;}")
         self.ui.size.setStyleSheet("QLabel{font-size:12px;color:#888888;background-color:transparent;}")
         self.ui.progresslabel.setStyleSheet("QLabel{font-size:12px;color:#888888;background-color:transparent;}")
@@ -130,6 +143,8 @@ class NormalCard(QWidget,Signals):
         # convert size
         # installedsize = self.app.installedSize
         installedsize = self.app.packageSize
+        if installedsize == 0:
+            installedsize=app.installedSize
         installedsizek = installedsize / 1024
         if(installedsizek == 0):
             #self.ui.size.setText("未知")
@@ -142,12 +157,22 @@ class NormalCard(QWidget,Signals):
         # add by kobe
         if self.app.displayname_cn != '' and self.app.displayname_cn is not None and self.app.displayname_cn != 'None':
             setLongTextToElideFormat(self.ui.name, self.app.displayname_cn)
-            # setLongTextToElideFormat(self.ui.progressBarname, self.app.displayname_cn)
+            setLongTextToElideFormat(self.ui.progressBarname, self.app.displayname_cn)
             # setLongTextToElideFormat(self.ui.named, self.app.displayname_cn)
+        if self.app.displayname != '' and self.app.displayname is not None and self.app.displayname != 'None':
+            text = setLongTextToElideFormat(self.ui.name, self.app.displayname_cn)
+            # self.ui.name.setText(self.app.displayname_cn)
+            if str(text).endswith("…") is True:
+                self.ui.name.raise_()
+                self.ui.name.setToolTip(self.app.displayname_cn)
+            else:
+                self.ui.name.setToolTip("")
         else:
             setLongTextToElideFormat(self.ui.name, self.app.displayname)
-            # setLongTextToElideFormat(self.ui.progressBarname, self.app.displayname)
+            setLongTextToElideFormat(self.ui.progressBarname, self.app.displayname)
             # setLongTextToElideFormat(self.ui.named, self.app.displayname)
+
+
 
         # if self.app.summary is not None and self.app.summary != 'None' and self.app.summary != '':
             # self.ui.description.setText(self.app.summary)
@@ -449,12 +474,17 @@ class NormalCard(QWidget,Signals):
             self.ui.btn.setEnabled(False)
             #if(self.ui.btn.text() == "安装"):
             if (self.ui.btn.text() == _("Install")):
+                #self.ui.btnCancel.hide()
+                # if isinstance(self.app, ApkInfo):
+                #     pass
+                # else:
                 self.app.status = PkgStates.INSTALLING
                 # self.ui.btn.setText("等待安装")
                 self.ui.btn.setText(_("Waiting for installation"))
                 self.slot_show_progress("install")
                 self.install_app.emit(self.app)
                 if(not self.ui.btn.isEnabled() == True):
+                    # self.ui.btnCancel.hide()
                     self.get_card_status.emit(self.app.name, PkgStates.INSTALLING)
                 # self.ui.btn.setStyleSheet("QPushButton{color:white;border:0px;background-image:url('res/ncard-install-btn-1.png');}QPushButton:hover{border:0px;background-image:url('res/ncard-install-btn-2.png');}QPushButton:pressed{border:0px;background-image:url('res/ncard-install-btn-3.png');}")
                 # self.ui.btnDetail.setStyleSheet("QPushButton{border:0px;background-image:url('res/ncard-install-border.png');}")
@@ -472,7 +502,7 @@ class NormalCard(QWidget,Signals):
 
             #elif(self.ui.btn.text() == "卸载"):
             elif (self.ui.btn.text() == _("Uninstall")):
-                if self.app.name == "ubuntu-kylin-software-center":
+                if self.app.name == "kylin-software-center":
                     self.uninstall_uksc_or_not.emit("normalcard")
                 else:
                     self.app.status = PkgStates.REMOVING
@@ -541,7 +571,6 @@ class NormalCard(QWidget,Signals):
         self.ui.progresslabel.setText(str(0) + '%')
         self.ui.progressBar.reset()
         self.ui.progressBarsmall.reset()
-
     def slot_progress_change(self, pkgname, percent, status):
         if self.app.name == pkgname:
             self.ui.progressBar.setVisible(True)
@@ -561,6 +590,9 @@ class NormalCard(QWidget,Signals):
                 #self.ui.btn.setText("正在下载")
                 self.ui.btn.setText(_("downloading"))
             if status == AppActions.INSTALL:
+                if percent>=0:
+                    if isinstance(self.app,Application):
+                        self.ui.btnCancel.hide()
                 if(Globals.MIPS64):
                     self.ui.progressBar.setStyleSheet("QProgressBar{background-color:#ffffff;border:0px;border-radius:0px;}")
                     self.ui.progressBarsmall.setStyleSheet("QProgressBar{background-color:#e5e5e5;border:0px;border-radius:0px;}")
@@ -572,7 +604,10 @@ class NormalCard(QWidget,Signals):
                 self.ui.progresslabel.setStyleSheet("QLabel{font-size:12px;color:#2d8ae1;background-color:transparent;}")
                 #self.ui.btn.setText("正在安装")
                 self.ui.btn.setText(_("Installing"))
+
             elif status == AppActions.UPGRADE:
+                if percent>=100:
+                    self.ui.btnCancel.hide()
                 if(Globals.MIPS64):
                     self.ui.progressBar.setStyleSheet("QProgressBar{background-color:#ffffff;border:0px;border-radius:0px;}")
                     self.ui.progressBarsmall.setStyleSheet("QProgressBar{background-color:#e5e5e5;border:0px;border-radius:0px;}")
@@ -585,6 +620,7 @@ class NormalCard(QWidget,Signals):
                 #self.ui.btn.setText("正在升级")
                 self.ui.btn.setText(_("upgrading"))
             elif status == AppActions.REMOVE:
+                self.ui.btnCancel.hide()
                 if(Globals.MIPS64):
                     self.ui.progressBar.setStyleSheet("QProgressBar{background-color:#ffffff;border:0px;border-radius:0px;}")
                     self.ui.progressBarsmall.setStyleSheet("QProgressBar{background-color:#e5e5e5;border:0px;border-radius:0px;}")
@@ -613,6 +649,7 @@ class NormalCard(QWidget,Signals):
             self.ui.progresslabel.setVisible(False)
             self.ui.progressBar_icon.setVisible(False)
             self.ui.progressBar.setVisible(False)
+            self.ui.btnCancel.show()
             #self.star.setVisible(True)
             self.ui.progressBar.reset()
             self.ui.progressBarsmall.reset()
@@ -622,6 +659,7 @@ class NormalCard(QWidget,Signals):
             self.ui.progresslabel.setVisible(False)
             self.ui.progressBar_icon.setVisible(False)
             self.ui.progressBar.setVisible(False)
+            self.ui.btnCancel.show()
             #self.star.setVisible(True)
             self.ui.progressBar.reset()
             self.ui.progressBarsmall.reset()
@@ -629,10 +667,11 @@ class NormalCard(QWidget,Signals):
     # kobe 1106
     def slot_change_btn_status(self, pkgname, status):
         if self.app.name == pkgname:
-            self.ui.btn.setEnabled(False)
+            #self.ui.btn.setEnabled(False)
             if status == PkgStates.INSTALLING:
                 self.app.status = PkgStates.INSTALLING
                 if self.app.percent > 0:
+                    self.ui.btnCancel.hide()
                     #self.ui.btn.setText("正在安装")
                     self.ui.btn.setText(_("Installing"))
                 else:
@@ -668,6 +707,17 @@ class NormalCard(QWidget,Signals):
             if not Globals.APK_EVNRUN:
                 self.normalcard_kydroid_envrun.emit()
                 return
+            else:
+                if  Globals.DEFT == True:
+                    if self.ui.btn.text() == _("Install"):
+                        self.app.status = PkgStates.INSTALL
+                        Globals.DEFT = False
+                    elif self.ui.btn.text() == _("Uninstall"):
+                        self.app.status = PkgStates.UNINSTALL
+                        Globals.DEFT = False
+                    else:
+                        self.app.status = PkgStates.UPDATE
+                        Globals.DEFT = False
         self.show_app_detail.emit(self.app)
 
     def slot_work_finished(self, pkgname, action):
@@ -716,6 +766,7 @@ class NormalCard(QWidget,Signals):
                         self.app.status = PkgStates.RUN
                         #self.ui.btn.setText("启动")
                         self.ui.btn.setText(_("Start"))
+                        # self.ui.btnCancel.hide()
                         self.ui.btn.setEnabled(True)
                         self.ui.btn.setStyleSheet("QPushButton{font-size:12px;color:#000000;border:1px solid #d5d5d5;background-color:#ffffff;}QPushButton:hover{font-size:12px;color:#ffffff;border:1px solid #d5d5d5;background-color:#2d8ae1;}QPushButton:pressed{font-size:12px;color:#ffffff;border:1px solid #d5d5d5;background-color:#2d8ae1;}")
                         # self.ui.btnDetail.setStyleSheet("QPushButton{border:0px;background-image:url('res/ncard-run-border.png');}")
@@ -814,6 +865,7 @@ class NormalCard(QWidget,Signals):
                             self.app.status = PkgStates.NORUN
                             # self.ui.btn.setText("已安装")
                             self.ui.btn.setText(_("Aldy install"))
+                            # self.ui.btnCancel.hide()
                             self.ui.btn.setEnabled(False)
                             self.ui.btn.setStyleSheet("QPushButton{font-size:12px;color:#000000;border:1px solid #d5d5d5;background-color:#ffffff;}")
                             # self.ui.btnDetail.setStyleSheet("QPushButton{border:0px;background-image:url('res/ncard-un-border.png');}")
@@ -867,6 +919,7 @@ class NormalCard(QWidget,Signals):
                             self.app.status = PkgStates.NORUN
                             #self.ui.btn.setText("已安装")
                             self.ui.btn.setText(_("Aldy install"))
+                            # self.ui.btnCancel.hide()
                             self.ui.btn.setEnabled(False)
                             self.ui.btn.setStyleSheet("QPushButton{font-size:12px;color:#000000;border:1px solid #d5d5d5;background-color:#ffffff;}")
                             # self.ui.btnDetail.setStyleSheet("QPushButton{border:0px;background-image:url('res/ncard-un-border.png');}")
@@ -920,8 +973,47 @@ class NormalCard(QWidget,Signals):
                         self.ui.btn.setText(_("Unable to uninstall"))
                         self.ui.btn.setEnabled(False)
 
-            # if self.app.percent < 0:
-            #     self.star.hide()
+                        #
+    # 函数名:点击取消
+    # Function:click cancel
+    #
+    def slot_click_cancel(self):
+        Globals.TASK_LIST.append(self.app.name)
+        self.ui.progresslabel.setVisible(False)
+        self.ui.progressBar_icon.setVisible(False)
+        self.ui.progressBar.setVisible(False)
+        self.ui.btn.setEnabled(True)
+        if self.ui.btn.text()==(_("Install")):
+            self.nomol_cancel.emit(self.app, "install")
+        else:
+            self.nomol_cancel.emit(self.app, "upgrade")
+
+        # self.cancel_task_list()
+        self.connct_cancel.emit(self.app.name)
+        self.signale_set.emit("download_apk",self.app)
+        self.set_detail_install.emit()
+        self.history_install.emit(self.app.name)
+
+        # self.apk_nocard_cancel.emit()
+
+
+    # def cancel_task_list(self):
+    #     self.apk_nocard_cancel.emit()
+
+    #
+    #函数名：点击取消之后的状态
+    #
+    def status_cancel(self,appname):
+        if appname==self.app.name:
+            self.ui.btn.setEnabled(True)
+            self.ui.progresslabel.setVisible(False)
+            self.ui.progressBar_icon.setVisible(False)
+            self.ui.progressBar.setVisible(False)
+            self.ui.btnCancel.show()
+            self.ui.btn.text()==(_("Install"))
+
+    #
+        # self.ui.btnCancel.hide()
     # def card_check_kydroid_envrun(self):
     #     try:
     #         kydroid_dri3_desktop = len(os.popen('ps aux | grep "kydroid-app-window" | grep -v grep').readlines())

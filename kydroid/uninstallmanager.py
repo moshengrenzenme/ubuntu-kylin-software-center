@@ -29,7 +29,14 @@ import threading
 from models.globals import Globals
 
 import gettext
-gettext.textdomain("ubuntu-kylin-software-center")
+import os
+LOCALE = os.getenv("LANG")
+if "bo" in LOCALE:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale-langpack")
+    gettext.textdomain("kylin-software-center")
+else:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale")
+    gettext.textdomain("ubuntu-kylin-software-center")
 _ = gettext.gettext
 
 class UninstallManager(threading.Thread, QObject):
@@ -45,6 +52,9 @@ class UninstallManager(threading.Thread, QObject):
     def run(self):
         self.uninstall_app(self.appname)
 
+    #
+    # 函数：卸载安卓兼容应用
+    #
     def uninstall_app(self, appname):
         self.appmgr.apk_process.emit(self.appname, 'apt', AppActions.REMOVE, 50, 'uninstall apk file')
         rtn = self.appmgr.kydroid_service.uninstall_app(appname)

@@ -33,7 +33,13 @@ from utils import commontools
 from models.enums import (Signals,)
 
 import gettext
-gettext.textdomain("ubuntu-kylin-software-center")
+LOCALE = os.getenv("LANG")
+if "bo" in LOCALE:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale-langpack")
+    gettext.textdomain("kylin-software-center")
+else:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale")
+    gettext.textdomain("ubuntu-kylin-software-center")
 _ = gettext.gettext
 
 class TransListItemWidget(QWidget,Signals):
@@ -142,10 +148,18 @@ class TransListItemWidget(QWidget,Signals):
                 self.ui.descriptionstatu.setStyleSheet("QLabel{background-color:transparent;font-size:13px;color:black;}")
 
 
+    #
+    # 函数名:初始化界面
+    # Function: init interface
+    # 
     def ui_init(self):
         self.ui = Ui_Uktransliw()
         self.ui.setupUi(self)
         self.show()
 
+    #
+    # 函数名:显示详情界面
+    # Function: show detail
+    # 
     def slot_emit_detail(self):
         self.show_app_detail.emit(self.app)

@@ -31,7 +31,14 @@ from models.enums import setLongTextToElideFormat
 from ui.ukrliw import Ui_RankListWidget
 
 import gettext
-gettext.textdomain("ubuntu-kylin-software-center")
+import os
+LOCALE = os.getenv("LANG")
+if "bo" in LOCALE:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale-langpack")
+    gettext.textdomain("kylin-software-center")
+else:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale")
+    gettext.textdomain("ubuntu-kylin-software-center")
 _ = gettext.gettext
 
 class RankListItemWidget(QWidget):
@@ -67,11 +74,19 @@ class RankListItemWidget(QWidget):
         self.ui.number.setStyleSheet("QLabel{font-size:15px;font-style:italic;color:#999999;}")
         self.ui.appstatus.setStyleSheet("QLabel{font-size:12px;color:#666666;}")
 
+    #
+    # 函数名:初始化界面
+    # Function:init interface
+    # 
     def ui_init(self):
         self.ui = Ui_RankListWidget()
         self.ui.setupUi(self)
         # self.show()
 
+    #
+    # 函数名:进入控件
+    # Function:enter control
+    # 
     def enterEvent(self, event):
         count = self.pwidget.count()
         for i in range(count):
@@ -89,6 +104,10 @@ class RankListItemWidget(QWidget):
         self.ui.name.setStyleSheet("QLabel{font-size:12px;font-weight:bold;color:#444444;}")
         self.ui.appstatus.setStyleSheet("QLabel{font-size:12px;color:#444444;}")
 
+    #
+    # 函数名:离开控件
+    # Function:leave control
+    # 
     def leaveEvent(self, event):
         count = self.pwidget.count()
         for i in range(count):

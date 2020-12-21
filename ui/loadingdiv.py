@@ -29,7 +29,14 @@ from models.enums import UBUNTUKYLIN_RES_PATH
 from models.globals import Globals
 
 import gettext
-gettext.textdomain("ubuntu-kylin-software-center")
+import os
+LOCALE = os.getenv("LANG")
+if "bo" in LOCALE:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale-langpack")
+    gettext.textdomain("kylin-software-center")
+else:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale")
+    gettext.textdomain("ubuntu-kylin-software-center")
 _ = gettext.gettext
 
 class LoadingDiv(QWidget):
@@ -76,14 +83,22 @@ class LoadingDiv(QWidget):
         # self.loadingtext = QLabel(self)
         # self.loadingtext.setGeometry()
 
-        self.raise_()
+        # self.raise_()
         self.hide()
 
+    #
+    # 函数名:加载图片
+    # Function: load png
+    #
     def load_png(self):
         for i in range(1, 60):
             img = QPixmap("res/loading/" + str(i) + ".png")
             self.ngif.append(img)
-
+   
+    #
+    # 函数名:更改
+    # Function: process change
+    #
     def slot_switch_animation_step(self):
         if(self.currentpage == 59):
             self.currentpage = 1
@@ -92,12 +107,20 @@ class LoadingDiv(QWidget):
 
         self.currentpage = self.currentpage + 1
 
+    #
+    # 函数名:开始加载
+    # Function: start loading
+    #
     def start_loading(self):
         # self.loadingtext.setText(loadingText)
         self.currentpage = 22
         self.switchTimer.start(60)
         self.show()
-
+   
+    #
+    # 函数名:停止加载
+    # Function: stop loading
+    #
     def stop_loading(self):
         self.switchTimer.stop()
         self.hide()
@@ -132,7 +155,6 @@ class MiniLoadingDiv(QWidget):
         self.y_ = onwhich.y()
         self.width_ = onwhich.width()
         self.height_ = onwhich.height()
-
         self.setGeometry(self.x_, self.y_, self.width_, self.height_)
 
         self.gif = QMovie(UBUNTUKYLIN_RES_PATH + "loading.gif")
@@ -144,11 +166,19 @@ class MiniLoadingDiv(QWidget):
         # self.loadingtext.setAlignment(Qt.AlignCenter)
         self.raise_()
         self.hide()
-
+   
+ #
+    # 函数名:开始加载
+    # Function: start loading
+    #
     def start_loading(self):
         self.gif.start()
         self.show()
 
+    #
+    # 函数名:停止加载
+    # Function: stop loading
+    #
     def stop_loading(self):
         self.gif.stop()
         self.hide()

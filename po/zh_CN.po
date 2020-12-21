@@ -48,7 +48,7 @@ msgstr "操作取消"
 
 #: backend/installbackend.py:181 backend/installbackend.py:199
 msgid "Android dbus initialization failed"
-msgstr "安卓dbus初始化失败"
+msgstr "移动应用dbus初始化失败"
 
 #: backend/installbackend.py:309
 msgid "test"
@@ -67,12 +67,8 @@ msgid "Initialization prompt"
 msgstr "初始化提示"
 
 #: ubuntu-kylin-software-center.py:118
-msgid ""
-"Initialization failed (DBus service)\n"
-"Please confirm whether\n"
-"it is installedcorrectly, ignore the software installation and \n"
-"other operations will not workPlease select:"
-msgstr "初始化失败 (DBus服务)\n请确认是否正确安装,忽略将不能正常进行软件安装等操作\n请选择:"
+msgid "DBUS service exception is detected, which may be caused by the initial exception of apt module and poor network condition.\nPlease exit and restart the software store.\n"
+msgstr "检测到dbus服务异常，通常可能是由于apt模块初始异常、网络情况不佳等原因引起。\n请退出后重新打开软件商店。\n"
 
 #: ubuntu-kylin-software-center.py:251
 msgid "Galaxy Kylin Software Store"
@@ -120,7 +116,7 @@ msgstr "有"
 
 #: ubuntu-kylin-software-center.py:492
 msgid "Android Software"
-msgstr "款安卓软件"
+msgstr "款移动应用"
 
 #: ubuntu-kylin-software-center.py:506
 msgid "Soft can upgr"
@@ -299,23 +295,23 @@ msgstr "失败"
 msgid ""
 "Missing environment \n"
 "Unable to install APP"
-msgstr "未检测到安卓兼容环境\n无法安装安卓APP"
+msgstr "未检测到移动应用环境\n无法安装应用"
 
 #: ubuntu-kylin-software-center.py:3011
 msgid ""
 "Android software source not found or\n"
 "The software source connection is abnormal！"
-msgstr "未找到安卓软件源或\n软件源连接异常！"
+msgstr "未找到移动应用源或\n软件源连接异常！"
 
 #: ubuntu-kylin-software-center.py:3014
 msgid ""
 "The Android software source cannot be connected \\ nPlease check the system "
 "network！"
-msgstr "安卓软件源无法连接\n请检查系统网络！"
+msgstr "移动应用源无法连接\n请检查系统网络！"
 
 #: ubuntu-kylin-software-center.py:3079
 msgid "Android environment starts abnormally, operation fails！"
-msgstr "安卓环境启动异常，操作失败！"
+msgstr "移动应用环境启动异常\n操作失败！"
 
 #: ubuntu-kylin-software-center.py:3375 ubuntu-kylin-software-center.py:3469
 msgid ""
@@ -847,7 +843,7 @@ msgstr "下载"
 
 #: ui/normalcard.py:381 ui/rcmdcard.py:261
 msgid "Start the Android environment"
-msgstr "启动安卓环境"
+msgstr "初始化环境"
 
 #: ui/ranklistitemwidget.py:61
 msgid "Already installed"
@@ -870,15 +866,15 @@ msgid "Please wait"
 msgstr "请稍候"
 
 #: ui/mainwindow.py:172
-msgid "Hot Reco"
+msgid "Hot"
 msgstr "热门推荐"
 
 #: ui/mainwindow.py:182
-msgid "All soft"
+msgid "All"
 msgstr "全部软件"
 
 #: ui/mainwindow.py:188
-msgid "Win sub"
+msgid "Win Substitute"
 msgstr "win替换"
 
 #: ui/mainwindow.py:358
@@ -1009,7 +1005,7 @@ msgstr "未知"
 
 #: ui/tasklistitemwidget.py:199
 msgid "Waiting"
-msgstr "等待中"
+msgstr "等待"
 
 #: ui/tasklistitemwidget.py:226 ui/tasklistitemwidget.py:252
 msgid "download"
@@ -1142,7 +1138,7 @@ msgstr "软件评分"
 msgid "Ft"
 msgstr "分"
 
-#: ui/detailscrollwidget.py:528 ui/detailscrollwidget.py:646
+#: ui/detailscrollwidget.py:528 ui/detailscrollwidget.py:646 ui/confw.py
 msgid "Package name :"
 msgstr "软件包名 : "
 
@@ -1162,18 +1158,18 @@ msgstr "需要安装的依赖包"
 msgid "Unable to install the package"
 msgstr "无法安装该软件包"
 
-#: ui/detailscrollwidget.py:648
-msgid "current version :"
+#: ui/detailscrollwidget.py:648 ui/confw.py
+msgid "Current version :"
 msgstr "当前版本 : "
 
-#: ui/detailscrollwidget.py:650
+#: ui/detailscrollwidget.py:650 ui/confw.py
 msgid "Software source version :"
 msgstr "软件源版本 : "
 
 #: ui/detailscrollwidget.py:661 ui/detailscrollwidget.py:664
 #: ui/detailscrollwidget.py:667
 msgid "Download size :"
-msgstr "下载大小 : "
+msgstr "安装大小 : "
 
 #: ui/detailscrollwidget.py:677
 msgid "My rating:"
@@ -1267,11 +1263,11 @@ msgid "aberrant"
 msgstr "异常"
 
 #: ui/detailscrollwidget.py:1294 ui/detailscrollwidget.py:1304
-msgid "download times： "
+msgid "Download times： "
 msgstr "下载次数 : "
 
 #: ui/detailscrollwidget.py:1307
-msgid "download times: "
+msgid "Download times: "
 msgstr "下载次数 : "
 
 #: ui/detailscrollwidget.py:1307
@@ -1299,9 +1295,146 @@ msgid "Retract"
 msgstr "收起"
 
 #: ubuntu-kylin-software-center.py:2799
-msgid "back"
+msgid "Back"
 msgstr "返回"
 
 #: ui/detailscrollwidget.py
 msgid "\nError or missing dependencies"
 msgstr "\n包异常或软件源缺少依赖包"
+
+#ubuntu-software-center.py
+msgid "        Upgrade"
+msgstr "           升 级"
+
+#ubuntu-software-center.py
+msgid "    Storehouse"
+msgstr "           宝 库     "
+
+#ubuntu-software-center.py
+msgid "    Cell Phone"
+msgstr "           手 机"
+
+#ubuntu-software-center.py
+msgid "      Uninstall"
+msgstr "           卸 载"
+
+#:ui/categorybar.py
+msgid "Feature"
+msgstr "特色"
+
+#:ui/categorybar.py
+msgid "Office"
+msgstr "办公"
+
+#:ui/categorybar.py
+msgid "Develp"
+msgstr "开发"
+
+#:ui/categorybar.py
+msgid "Image"
+msgstr "图像"
+
+#:ui/categorybar.py
+msgid "Audio"
+msgstr "影音"
+
+#:ui/categorybar.py
+msgid "Net"
+msgstr "网络"
+
+#:ui/categorybar.py
+msgid "Game"
+msgstr "游戏"
+
+#:ui/categorybar.py
+msgid "Edu"
+msgstr "教育"
+
+#:ui/categorybar.py
+msgid "Social"
+msgstr "社交"
+
+#:ui/categorybar.py
+msgid "System"
+msgstr "系统"
+
+#:ui/categorybar.py
+msgid "Other"
+msgstr "其它"
+
+#:ui/tasklistitemwidget.py
+msgid "Cancelled"
+msgstr "已取消"
+
+#:ui/login.py
+msgid "The first character is a letter"
+msgstr "用户名首字符必须是字母"
+
+#:ui/login.py
+msgid "Password canot be pure numbers letters"
+msgstr "用户密码必须由数字和字母组成"
+
+#:ui/login.py
+msgid "The password length is greater than six"
+msgstr "用户密码长度必须大于六位"
+
+#:ubuntu-kylin-software-center.py
+msgid "If the number of comments exceeds 150 words or 3 lines, it will be omitted. Hover over the comment box to view the comments"
+msgstr "评论字数超过150个字或者3行后会省略，鼠标悬浮评论框即可查看评论内容"
+
+#:ui/confirmdialog.py
+msgid "Tips"
+msgstr "提示"
+
+#:ui/confirmdialog.py
+msgid "determine"
+msgstr "确定"
+
+#:ubuntu-kylin-software-center.py
+msgid "Opening files is not supported"
+msgstr "不支持打开文件"
+
+#:ubuntu-kylin-software-center.py
+msgid "Abnormal prompt"
+msgstr "异常提示"
+
+#:ubuntu-kylin-software-center.py
+msgid "Yes"
+msgstr "确定"
+
+#: ui/mainwindow.py:172
+msgid "The environment is initialized, the interface is temporarily locked, please wait..."
+msgstr "环境初始化，暂时锁定界面，请等待..."
+
+#: ui/detailscrollwidget.py
+msgid "Not installed"
+msgstr "未安装"
+
+#: ui/confwidget.py
+msgid "Source update in progress"
+msgstr "源更新中......"
+
+#: ui/login.py
+msgid "Logging......"
+msgstr "登录中......"
+
+#: ui/confw.py ui/confwidget.py
+msgid "About us"
+msgstr "关于我们"
+
+#: ui/confw.py
+msgid "Kirin software store is a tool software for Kirin operating system developed by Kirin team. Its main functions include downloading, unloading and upgrading software. Various functions in the continuous improvement, please look forward to"
+msgstr "麒麟软件商店是是由麒麟团队开发的一款用于麒麟操作系统的工具软件，主要功能有，下载，卸载，升级软件等功能。各项功能在不断完善中，敬请期待..."
+
+#: ui/confw.py
+msgid "Kylin software store"
+msgstr "麒麟软件商店"
+
+#: ui/confw.py
+msgid "Contributor email:"
+msgstr "贡献者邮箱"
+
+
+
+
+

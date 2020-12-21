@@ -322,6 +322,9 @@ class SilentProcess(multiprocessing.Process):
     #     url = QUrl(requestData)
     #     self.httpmodel.sendDownLoadRequest(url)
 
+    #
+    # 函数：获取新应用的图标
+    #
     def get_newer_application_icon(self):
         # get application icon last update date
         last_update_date = ''
@@ -376,8 +379,9 @@ class SilentProcess(multiprocessing.Process):
             if (Globals.DEBUG_SWITCH):
                 print("Failed to get  newer application icon")
 
-
-
+    #
+    # 函数：获取新应用的截图
+    #
     def get_newer_application_screenshots(self):
         last_update_date = ''
         try:
@@ -433,8 +437,9 @@ class SilentProcess(multiprocessing.Process):
             if (Globals.DEBUG_SWITCH):
                 print("Failed to get  newer application screenshots")
 
-
-
+    #
+    # 函数：获取新的广告
+    #
     def get_newer_application_ads(self):
         last_update_date = ''
         try:
@@ -502,6 +507,9 @@ class SilentProcess(multiprocessing.Process):
                 print("Failed to get  newer application icon")
 
     #*************************update for xapiandb***********************************#
+    #
+    # 函数：更新xapian数据库
+    #
     def update_xapiandb(self, kwargs):
         database = xapian.WritableDatabase(XAPIAN_DB_PATH, xapian.DB_OPEN)
         DB = xapian.Database(XAPIAN_DB_PATH)
@@ -541,12 +549,14 @@ class SilentProcess(multiprocessing.Process):
                 enquire.set_query(query)
                 doccount = DB.get_doccount()
                 matches = enquire.get_mset(0,doccount)
+                flag = 1
                 if matches.size() != 0:
                     for re in matches:
                         get_name = re.document.get_data()
                         if (isinstance(get_name,bytes)):
                             get_name = get_name.decode(encoding='utf-8')
                         if get_name == app_name:
+                            flag = 0
                             docid = re.docid
                             doc = re.document
                             doc.clear_terms()
@@ -575,7 +585,7 @@ class SilentProcess(multiprocessing.Process):
 
                         else:
                             continue
-                else:
+                if flag:
                     doc = xapian.Document()
                     doc.set_data(app_name)
                     doc.add_term(app_name,10)

@@ -14,7 +14,13 @@ from models.enums import (AppActions,
                           Signals,
                           PkgStates)
 import gettext
-gettext.textdomain("ubuntu-kylin-software-center")
+LOCALE = os.getenv("LANG")
+if "bo" in LOCALE:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale-langpack")
+    gettext.textdomain("kylin-software-center")
+else:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale")
+    gettext.textdomain("ubuntu-kylin-software-center")
 _ = gettext.gettext
 
 class ListItemWidget(QWidget,Signals):
@@ -59,7 +65,9 @@ class ListItemWidget(QWidget,Signals):
             self.ui.summary.setText(self.app.orig_summary)
 
         # installedsize = app.installedSize
-        installedsize = app.packageSize
+        installedsize = app.installedSize
+        if installedsize == 0:
+            installedsize=app.packageSize
         installedsizek = installedsize / 1024
         if(installedsizek == 0):
             #self.ui.installedsize.setText("未知")
@@ -146,11 +154,19 @@ class ListItemWidget(QWidget,Signals):
         self.ui.btn.clicked.connect(self.slot_btn_click)
         self.ui.btnDetail.clicked.connect(self.slot_emit_detail)
 
+    #
+    #函数名: 初始化界面 
+    #Function: init widget
+    #
     def ui_init(self):
         self.ui = Ui_Ukliw()
         self.ui.setupUi(self)
         self.show()
 
+    #
+    #函数名: 点击按钮 
+    #Function: click button
+    #
     def slot_btn_click(self):
         if(self.workType == "run"):
             self.app.run()
@@ -179,9 +195,17 @@ class ListItemWidget(QWidget,Signals):
 
 
 
+    #
+    #函数名:信号发送
+    #Function: singnal send
+    #
     def slot_emit_detail(self):
         self.show_app_detail.emit(self.app)
 
+    #
+    #函数名:工作完成 
+    #Function: work finished
+    #
     def slot_work_finished(self, pkgname, action):
         if self.app.name == pkgname:
             if action in (AppActions.INSTALL,AppActions.UPGRADE,AppActions.INSTALLDEBFILE):
@@ -212,6 +236,10 @@ class ListItemWidget(QWidget,Signals):
                 self.ui.cbSelect.setEnabled(True)
                 self.ui.btn.setStyleSheet("QPushButton{font-size:14px;background:#0bc406;border:1px solid #03a603;color:white;}QPushButton:hover{background-color:#16d911;border:1px solid #03a603;color:white;}QPushButton:pressed{background-color:#07b302;border:1px solid #037800;color:white;}")
 
+    #
+    #函数名: 取消工作
+    #Function: cancel work
+    #
     def slot_work_cancel(self, pkgname, action):
         if self.app.name == pkgname:
             if action == AppActions.INSTALL:
@@ -238,6 +266,10 @@ class ListItemWidget(QWidget,Signals):
                 self.ui.status.show()
                 self.ui.cbSelect.setEnabled(True)
 
+    #
+    #函数名: 更改控件状体
+    #Function: change button status
+    #
     def slot_change_btn_status(self, pkgname, status):#zx11.28 To keep the same btn status in uapage and detailscrollwidget
         if self.app.name == pkgname:
             self.ui.btn.setEnabled(False)

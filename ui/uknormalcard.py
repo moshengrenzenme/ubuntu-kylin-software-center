@@ -87,10 +87,11 @@ class Ui_NormalCard(object):
         self.progressBarsmall.setProperty("value", 0)
         self.progressBarsmall.setTextVisible(False)
         self.progressBarsmall.setObjectName(_fromUtf8("progressBar"))
-        # self.progressBarname = QLabel(self.baseWidget)
-        # self.progressBarname.setGeometry(QtCore.QRect(68, 20, 120, 15))
-        # self.progressBarname.setText(_fromUtf8(""))
-        # self.progressBarname.setObjectName(_fromUtf8("name"))
+
+        self.progressBarname = QLabel(self.progressBar)
+        self.progressBarname.setGeometry(QtCore.QRect(68, 20, 120, 15))
+        self.progressBarname.setText(_fromUtf8(""))
+        self.progressBarname.setObjectName(_fromUtf8("name"))
 
         self.progresslabel = QLabel(self.baseWidget)
         self.progresslabel.setGeometry(QtCore.QRect(68, 45, 35, 18))
@@ -105,9 +106,19 @@ class Ui_NormalCard(object):
         self.progressBar_icon.setObjectName(_fromUtf8("icon_progressBar"))
 
 
+        self.btnCancel = QPushButton(self.progressBar)
+        self.btnCancel.setGeometry(QtCore.QRect(176, 78, 14,14))
+        self.btnCancel.setText(_fromUtf8(""))
+        self.btnCancel.setObjectName(_fromUtf8("btncancel"))
+
+
         self.retranslateUi(NormalCard)
         QtCore.QMetaObject.connectSlotsByName(NormalCard)
 
+    #
+    # 函数名:设置窗口标题
+    # Function:set window title
+    # 
     def retranslateUi(self, NormalCard):
         NormalCard.setWindowTitle(_translate("NormalCard", "Form", None))
 

@@ -28,7 +28,14 @@ from PyQt5.QtCore import *
 from models.enums import UBUNTUKYLIN_RES_PATH,Signals
 
 import gettext
-gettext.textdomain("ubuntu-kylin-software-center")
+import os
+LOCALE = os.getenv("LANG")
+if "bo" in LOCALE:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale-langpack")
+    gettext.textdomain("kylin-software-center")
+else:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale")
+    gettext.textdomain("ubuntu-kylin-software-center")
 _ = gettext.gettext
 
 class ConfirmDialog(QDialog,Signals):
@@ -127,3 +134,17 @@ class Update_Source_Dialog(QMessageBox):
         self.button_exit = self.addButton(self.tr(_("Quit")), QMessageBox.ActionRole)
         self.button_exit.hide()
         self.setEscapeButton(self.button_exit)
+
+class File_window(QMessageBox):
+
+    def __init__(self, parent=None):
+        QMessageBox.__init__(self, parent)
+        #self.setWindowTitle("软件源更新提示")
+        # self.setWindowTitle(_("提示"))
+        self.setWindowTitle(_("Tips"))
+        # self.button_update = self.addButton(self.tr(_("确定")), QMessageBox.ActionRole)
+        self.button_update = self.addButton(self.tr(_("determine")), QMessageBox.ActionRole)
+        self.button_exit = self.addButton(self.tr(_("Quit")), QMessageBox.ActionRole)
+        self.button_exit.hide()
+        self.setEscapeButton(self.button_exit)
+

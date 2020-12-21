@@ -53,12 +53,12 @@ import threading
 log = logging.getLogger('Daemon')
 
 
-INTERFACE = 'com.ubuntukylin.softwarecenter'
+INTERFACE = 'com.kylin.softwarecenter'
 UKPATH = '/'
 
 HTTP_SOURCE_UBUNTUKYLIN = "http://archive.ubuntukylin.com:10006/ubuntukylin" 
 DEB_SOURCE_UBUNTUKYLIN = "deb " + HTTP_SOURCE_UBUNTUKYLIN
-UBUNTUKYLIN_SOFTWARECENTER_ACTION = 'com.ubuntukylin.softwarecenter.action'
+UBUNTUKYLIN_SOFTWARECENTER_ACTION = 'com.kylin.softwarecenter.action'
 
 LIB_PATH = "/var/lib/"
 DPKG_PATH = "dpkg/lock"
@@ -173,6 +173,9 @@ class SoftwarecenterDbusService(dbus.service.Object):
         self.worker_thread.setDaemon(True)
         self.worker_thread.start()
 
+    #
+    # 函数：操作policykit提权
+    #
     def auth_with_policykit(self, sender, action, text="要安装或卸载软件"):
         if not sender: 
             raise ValueError('sender == None')
@@ -197,6 +200,9 @@ class SoftwarecenterDbusService(dbus.service.Object):
 
         return granted
 
+    #
+    # 函数：添加线程任务
+    #
     def add_worker_item(self, item):
         print("####add_worker_item:",item)
         self.mutex.acquire()
@@ -204,6 +210,9 @@ class SoftwarecenterDbusService(dbus.service.Object):
         self.mutex.release()
         print("####add_worker_item finished!")
 
+    #
+    # 函数：删除线程任务
+    #
     def del_worker_item_by_name(self, cancelinfo):
         print("####del_worker_item_by_name:",cancelinfo[0])
 
@@ -244,6 +253,11 @@ class SoftwarecenterDbusService(dbus.service.Object):
     @dbus.service.method(INTERFACE, in_signature='', out_signature='')
     def exit(self):
         self.mainloop.quit()
+
+    # lixiang: wakeup dbus with timeout
+    @dbus.service.method(INTERFACE, in_signature='', out_signature='s')
+    def wakeup(self):
+        return "kylin"
 
     # check ubuntukylin source is in /etc/apt/sources.list or not
     @dbus.service.method(INTERFACE, in_signature='', out_signature='b', sender_keyword='sender')
@@ -633,7 +647,7 @@ class SoftwarecenterDbusService(dbus.service.Object):
 
     @dbus.service.method(INTERFACE, in_signature='', out_signature='b', sender_keyword='sender')
     def kydroid_policykit(self,sender=None):
-        granted = self.auth_with_policykit(sender,UBUNTUKYLIN_SOFTWARECENTER_ACTION,"安卓软件操作")
+        granted = self.auth_with_policykit(sender,UBUNTUKYLIN_SOFTWARECENTER_ACTION,"移动应用操作")
         if not granted:
             return False
         else:

@@ -31,7 +31,14 @@ from .application import Application
 
 
 import gettext
-gettext.textdomain("ubuntu-kylin-software-center")
+import os
+LOCALE = os.getenv("LANG")
+if "bo" in LOCALE:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale-langpack")
+    gettext.textdomain("kylin-software-center")
+else:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale")
+    gettext.textdomain("ubuntu-kylin-software-center")
 _ = gettext.gettext
 #This class is the abstraction of a 
 class Category:
@@ -87,6 +94,9 @@ class Category:
                 app = None
         return app
 
+    #
+    # 函数：获取安装、升级、卸载应用个数
+    #
     def get_application_count(self):
         inst = 0
         up = 0

@@ -30,7 +30,9 @@ import dbus
 import os
 import shutil
 import locale
-
+import datetime
+import time
+from gi.repository import GObject
 import logging
 
 from PyQt5.QtCore import *
@@ -42,12 +44,12 @@ from models.enums import (UBUNTUKYLIN_SERVICE_PATH,
                           Signals,
                           AptActionMsg,
                           AptProcessMsg,
+                          KYDROID_VERSION_D,
                           UnicodeToAscii)
 
 import multiprocessing
 
-from dbus.mainloop.glib import DBusGMainLoop
-mainloop = DBusGMainLoop(set_as_default=True)
+from dbus.mainloop.glib import DBusGMainLoop, threads_init
 from models.globals import Globals
 #from dbus.mainloop.qt import DBusQtMainLoop
 #mainloop = DBusQtMainLoop()
@@ -58,6 +60,64 @@ _ = gettext.gettext
 
 LOG = logging.getLogger("uksc")
 
+#lijiang
+# 类：初始化watchdog dbus
+#
+class InstallWatchdog(QObject, Signals):
+
+    def __init__(self):
+        super(InstallWatchdog, self).__init__()
+        self.monitoriface = None
+    #
+    # 函数：初始化watchdog dbus接口
+    #
+    def init_wathcdog_dbus(self):
+        try:
+            self.bus = dbus.SystemBus()
+        except Exception as e:
+            # if (Globals.DEBUG_DEBUG_SWITCH):
+            print("could not initiate dbus")
+            LOG.error("dbus exception:%s" % str(e))
+            return
+        try:
+            obj = self.bus.get_object("com.kylin.watchdog", '/')
+            self.monitoriface = dbus.Interface(obj, dbus_interface="com.kylin.watchdog")
+            #self.monitoriface.connect_to_signal("sendResult", self.onSendResult)
+            self.monitoriface.startWatchDog()
+        except dbus.DBusException as e:
+            LOG.error("dbus exception:%s" % str(e))
+            # if (Globals.DEBUG_SWITCH):
+            print("dbus.DBusException error: ", str(e))
+
+    def onSendResult(self, result):
+        print("WathchDog result:", result)
+
+    #
+    # 函数：调用watchdog dbus接口
+    #
+    def call_watchdog_dbus_iface(self, funcname, kwargs = None):
+        if self.monitoriface is None:
+            return None
+
+        func = getattr(self.monitoriface,funcname)
+        if func is None:
+            return None
+
+        res = None
+        try:
+            res = func(kwargs)
+        except dbus.DBusException as e:
+            if (Globals.DEBUG_SWITCH):
+                print("DBusException from uksc dbus",e)
+            LOG.error("watchdog dbus exception:%s" % str(e))
+            return None
+        return res
+
+    #
+    # 函数：退出watchdog dbus
+    #
+    def exit_watchdog_dbus(self):
+        self.call_watchdog_dbus_iface("exit")
 
 class InstallBackend(QObject,Signals):
 
@@ -69,10 +129,15 @@ class InstallBackend(QObject,Signals):
 
         self.iface = None
 
-
+    #
+    # 函数：初始化dbus接口
+    #
     def init_dbus_ifaces(self):
         try:
-            bus = dbus.SystemBus(mainloop)
+            LOG.info("InstallBackend init_dbus_ifaces (" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f") + ")")
+            DBusGMainLoop(set_as_default=True)
+            threads_init()
+            bus = dbus.SystemBus()
         except Exception as e:
             if (Globals.DEBUG_DEBUG_SWITCH):
                 print("could not initiate dbus")
@@ -82,28 +147,59 @@ class InstallBackend(QObject,Signals):
             return False
 
         try:
-            obj = bus.get_object(UBUNTUKYLIN_SERVICE_PATH,
-                                 '/',
-                                 UBUNTUKYLIN_INTERFACE_PATH)
-            #proxy = dbus.ProxyObject(obj,UBUNTUKYLIN_INTERFACE_PATH)
-            self.iface = dbus.Interface(obj, UBUNTUKYLIN_INTERFACE_PATH)
+            LOG.info("InstallBackend init_dbus_ifaces call blocking (%s)" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
+            bus.call_blocking(UBUNTUKYLIN_SERVICE_PATH, '/', UBUNTUKYLIN_INTERFACE_PATH, 'wakeup', None, (), timeout=5)
+        except dbus.DBusException as e:
+            LOG.error("InstallBackend DBusConnection call blocking exception: %s" % str(e))
+            return False
 
-#            self.call_dbus_iface("check_source_ubuntukylin")
+        try:
+            LOG.info("InstallBackend init_dbus_ifaces bus.get_object (%s)" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
+            obj = bus.get_object(UBUNTUKYLIN_SERVICE_PATH, '/')
+            LOG.info("InstallBackend init_dbus_ifaces dbus.Interface (%s)" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
+            self.iface = dbus.Interface(obj, dbus_interface=UBUNTUKYLIN_INTERFACE_PATH)
+            LOG.info("InstallBackend init_dbus_ifaces finished (%s)" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
 
-            self.iface.connect_to_signal("software_fetch_signal",self._on_software_fetch_signal)
-            self.iface.connect_to_signal("software_apt_signal",self._on_software_apt_signal)
-            self.iface.connect_to_signal("software_auth_signal",self._on_software_auth_signal)
+            # lixiang: Repeated starts dbus service may cause 25 seconds stuck because of bus.get_object or connect_to_signal
+            #if self.iface is not None:
+            #    LOG.info("InstallBackend start to connect signal named software_apt_signal (%s)" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
+            #    self.iface.connect_to_signal("software_apt_signal",self._on_software_apt_signal, dbus_interface=UBUNTUKYLIN_INTERFACE_PATH)
+            #    LOG.info("InstallBackend start to connect signal named software_fetch_signal (%s)" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
+            #    self.iface.connect_to_signal("software_fetch_signal",self._on_software_fetch_signal, dbus_interface=UBUNTUKYLIN_INTERFACE_PATH)
+            #    LOG.info("InstallBackend start to connect signal named software_auth_signal (%s)" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
+            #    self.iface.connect_to_signal("software_auth_signal",self._on_software_auth_signal, dbus_interface=UBUNTUKYLIN_INTERFACE_PATH)
+            #    LOG.info("InstallBackend connect signals finished (%s)" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
+            #else:
+            #    LOG.info("InstallBackend dbus interface in none (%s)" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
         except dbus.DBusException as e:
 #            bus_name = dbus.service.BusName('com.ubuntukylin.softwarecenter', bus)
 #            self.dbusControler = SoftwarecenterDbusController(self, bus_name)
 #           self.init_models_ready.emit("fail","初始化失败!")
             self.init_models_ready.emit("fail",_("Initialization failed"))
-            LOG.error("dbus exception:%s" % str(e))
+            LOG.error("InstallBackend DBusConnection exception: %s" % str(e))
             if(Globals.DEBUG_SWITCH):
                 print("dbus.DBusException error: ",str(e))
             return False
 
+        # lixiang: QTimer no response ???
+        GObject.timeout_add(2000, self.slotTimeout)
+
         return True
+
+    #lixiang
+    def slotTimeout(self):
+        LOG.info("InstallBackend slotTimeout Responsed (%s)" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
+        if self.iface is not None:
+            LOG.info("InstallBackend start to connect signal named software_apt_signal (%s)" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
+            self.iface.connect_to_signal("software_apt_signal",self._on_software_apt_signal, dbus_interface=UBUNTUKYLIN_INTERFACE_PATH)
+            LOG.info("InstallBackend start to connect signal named software_fetch_signal (%s)" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
+            self.iface.connect_to_signal("software_fetch_signal",self._on_software_fetch_signal, dbus_interface=UBUNTUKYLIN_INTERFACE_PATH)
+            LOG.info("InstallBackend start to connect signal named software_auth_signal (%s)" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
+            self.iface.connect_to_signal("software_auth_signal",self._on_software_auth_signal, dbus_interface=UBUNTUKYLIN_INTERFACE_PATH)
+            LOG.info("InstallBackend connect signals finished (%s)" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
+        else:
+            LOG.info("InstallBackend dbus interface in none (%s)" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
+        return False
 
     #call the dbus functions by function name
     def call_dbus_iface(self, funcname, kwargs=None):
@@ -125,6 +221,9 @@ class InstallBackend(QObject,Signals):
 
         return res
 
+    #
+    # 函数：软件状态的信号响应
+    #
     def _on_software_fetch_signal(self, type, kwarg):
         sendType = "fetch"
         appname = str(kwarg['download_appname'])
@@ -147,6 +246,9 @@ class InstallBackend(QObject,Signals):
 
         self.dbus_apt_process.emit(appname,sendType,action,percent,sendMsg)
 
+    #
+    # 函数：apt调用的返回信号响应
+    #
     def _on_software_apt_signal(self,type, kwarg):
         sendType = "apt"
         appname = str(kwarg['apt_appname'])
@@ -157,6 +259,9 @@ class InstallBackend(QObject,Signals):
 
         self.dbus_apt_process.emit(appname,sendType,action,percent,sendMsg)
 
+    #
+    # 函数：auth信号响应
+    #
     def _on_software_auth_signal(self,type, kwarg):
 
         sendType = "auth"
@@ -180,12 +285,13 @@ class InstallBackend(QObject,Signals):
             #self.init_models_ready.emit("fail","安卓dbus初始化失败!")
             self.init_models_ready.emit("fail", _("Android dbus initialization failed"))
             return False
-
+        dbus_server = "cn.kylinos." + KYDROID_VERSION_D
+        dbus_path = "/cn/kylinos/" + KYDROID_VERSION_D
         try:
-            obj = bus.get_object('cn.kylinos.Kydroid2',
-                                 '/cn/kylinos/Kydroid2',
-                                 'cn.kylinos.Kydroid2')
-            self.kydroid_iface = dbus.Interface(obj, 'cn.kylinos.Kydroid2')
+            obj = bus.get_object(dbus_server,
+                                 dbus_path,
+                                 dbus_server)
+            self.kydroid_iface = dbus.Interface(obj, dbus_server)
 
 #            self.call_dbus_iface("check_source_ubuntukylin")
 
@@ -204,6 +310,9 @@ class InstallBackend(QObject,Signals):
 
         return True
 
+    #
+    # 函数：调用kydroid的dbus接口
+    #
     def call_kydroid_dbus_iface(self, funcname, kwargs=None,kwargs2=None,kwargs3=None):
         if self.kydroid_iface is None:
             return None
@@ -221,13 +330,21 @@ class InstallBackend(QObject,Signals):
             return None
         return res
 
+    #
+    # 函数：获取kydroid环境运行状态
+    #
     def get_kydroid_evnrun(self,name,uid,prop):
         return self.call_kydroid_dbus_iface("GetPropOfContainer",name,uid,prop)
 
-
+    #
+    # 函数：安装多个deb包调用
+    #
     def install_deps(self, path):
         return self.call_dbus_iface(AppActions.INSTALLDEPS, path)
 
+    #
+    # 函数：安装本地deb包调用
+    #
     def install_debfile(self, path):
         debcache_dir = os.path.join(os.path.expanduser("~"), ".cache", "uksc", "debfile")
         if(os.path.exists(debcache_dir) == False):
@@ -283,6 +400,9 @@ class InstallBackend(QObject,Signals):
     def call_kydroid_policykit(self):
         return self.call_dbus_iface("kydroid_policykit")
 
+    #
+    # 函数：获取软件源
+    #
     def get_sources(self,except_ubuntu):
         list  = self.call_dbus_iface(AppActions.GET_SOURCES,except_ubuntu)
         resList = []

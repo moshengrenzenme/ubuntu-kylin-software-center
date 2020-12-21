@@ -40,7 +40,7 @@ class Ui_CommentWidget(object):
         self.commentBG.setText(_fromUtf8(""))
         self.commentBG.setObjectName(_fromUtf8("commentBG"))
         self.comment = QLabel(CommentWidget)
-        self.comment.setGeometry(QtCore.QRect(55, 31, 600, 34))
+        self.comment.setGeometry(QtCore.QRect(55, 31, 650, 34))
         self.comment.setText(_fromUtf8(""))
         self.comment.setObjectName(_fromUtf8("comment"))
         self.createDate = QLabel(CommentWidget)
@@ -51,6 +51,10 @@ class Ui_CommentWidget(object):
         self.retranslateUi(CommentWidget)
         QtCore.QMetaObject.connectSlotsByName(CommentWidget)
 
+    #
+    # 函数名:设置窗口标题
+    # Function: set window title
+    # 
     def retranslateUi(self, CommentWidget):
         CommentWidget.setWindowTitle(_translate("CommentWidget", "Form", None))
 

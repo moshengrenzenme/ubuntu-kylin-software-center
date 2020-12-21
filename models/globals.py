@@ -58,6 +58,7 @@ class Globals:
     # open with local deb file
     LOCAL_DEB_FILE = None
 
+    CLOSE_SOFTWARE = None
     #LOG.debug and print Switch
     DEBUG_SWITCH = False
 
@@ -97,10 +98,41 @@ class Globals:
     Dleft=0
     ADS_NUM=0
 
+    LINDIT=0
+
     REMOVE_SOFT = None
 
     JUMP_SCRENN=False
 
+    ERAN_SCRENN=0
+
     # SQLITR_DB=''
 
     isOnline = True
+    apkpagefirst = True
+
+    TASK_LIST=[]
+
+    STOP_DOWNLOAD=False
+
+    LOGIN_SUCCESS=False
+
+    UPNUM = False
+
+    DATAUNUM=""
+
+    DEFT = False
+
+    SYSTEM = False
+
+    DADET = False
+
+    KYDSOFT = False
+
+    installed_list_fat = []
+
+    BLACKLIST= []
+
+    KYDROID ={}
+
+

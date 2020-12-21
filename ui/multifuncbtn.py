@@ -9,9 +9,15 @@
 
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import *
-
 import gettext
-gettext.textdomain("ubuntu-kylin-software-center")
+import os
+LOCALE = os.getenv("LANG")
+if "bo" in LOCALE:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale-langpack")
+    gettext.textdomain("kylin-software-center")
+else:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale")
+    gettext.textdomain("ubuntu-kylin-software-center")
 _ = gettext.gettext
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -30,7 +36,7 @@ except AttributeError:
 class Ui_MultiFuncBtn(object):
     def setupUi(self, MultiFuncBtn):
         MultiFuncBtn.setObjectName(_fromUtf8("MultiFuncBtn"))
-        MultiFuncBtn.resize(500, 40)
+        MultiFuncBtn.resize(500, 50)
         self.btnRun = QPushButton(MultiFuncBtn)
         self.btnRun.setGeometry(QtCore.QRect(0, 0, 100, 38))
         self.btnRun.setObjectName(_fromUtf8("btnRun"))
@@ -47,6 +53,10 @@ class Ui_MultiFuncBtn(object):
         self.retranslateUi(MultiFuncBtn)
         QtCore.QMetaObject.connectSlotsByName(MultiFuncBtn)
 
+    #
+    # 函数名:设置控件名称
+    # Function:set the control name
+    #
     def retranslateUi(self, MultiFuncBtn):
         MultiFuncBtn.setWindowTitle(_translate("MultiFuncBtn", "Form", None))
        # self.btnRun.setText(_translate("MultiFuncBtn", "启动", None))

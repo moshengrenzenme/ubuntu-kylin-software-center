@@ -22,7 +22,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+import sys
 import os
 import stat
 import shutil
@@ -32,6 +32,9 @@ from models.enums import KYDROID_SOURCE_SERVER, KYDROID_DOWNLOAD_PATH, Signals, 
 import threading
 from models.globals import Globals
 
+#
+# 函数：下载源列表文件
+#
 def download_sourcelist():
     slurl = os.path.join(KYDROID_SOURCE_SERVER, 'kydroid-sourcelist')
     sllocal = os.path.join('/tmp', 'kydroid-sourcelist')
@@ -39,15 +42,14 @@ def download_sourcelist():
     if not os.path.exists(sllocal):
         request.urlretrieve(slurl, sllocal)
 
-
-class DownloadManager(threading.Thread, QObject):
+class DownloadManager(QObject):
     apkpath = ""
     appname = ""
     size = 0
     appmgr = None
 
     def __init__(self, appmgr, apkInfo):
-        threading.Thread.__init__(self)
+        # threading.Thread.__init__(self)
         QObject.__init__(self)
         self.apkpath = apkInfo.file_path
         self.appmgr = appmgr
@@ -59,13 +61,21 @@ class DownloadManager(threading.Thread, QObject):
     def run(self):
         self.download_apk(self.apkpath)
 
+    #
+    # 函数：下载进度
+    #
     def download_schedule(self, a, b, c):
         percent = a * b / self.size * 100
+        if Globals.STOP_DOWNLOAD==True:
+            sys.exit(0)
         # self.appmgr.normalcard_progress_change.emit(self.appname, percent, AppActions.DOWNLOADAPK)
         if int(percent) == self.percent_num :
             self.percent_num += 5
             self.appmgr.apk_process.emit(self.appname, 'fetch', AppActions.INSTALL, int(percent), 'downloading apk file')
 
+    #
+    # 函数：下载安卓兼容应用
+    #
     def download_apk(self, apkpath):
         apkurl = os.path.join(KYDROID_SOURCE_SERVER, apkpath)
         filename = apkpath.split('/')[-1]
@@ -73,6 +83,7 @@ class DownloadManager(threading.Thread, QObject):
         # print("1111",apkurl,apklocal,self.download_schedule)
 
         try: # 防止出现下载中断的情况
+            Globals.STOP_DOWNLOAD=False
             request.urlretrieve(apkurl, apklocal, self.download_schedule)
         except:
             count = 1
@@ -83,7 +94,10 @@ class DownloadManager(threading.Thread, QObject):
                 except:
                     count += 1
             if count > 5:
-                self.appmgr.apk_process.emit(self.appname, 'apt', AppActions.INSTALL, -2, 'download apk failed')
+                if Globals.STOP_DOWNLOAD==False:
+                    self.appmgr.apk_process.emit(self.appname, 'apt', AppActions.INSTALL, -2, 'download apk failed')
+                else :
+                    self.appmgr.apk_process.emit(self.appname, 'apt', AppActions.INSTALL, -20, 'download cancel')
                 return
 
         if (Globals.DEBUG_SWITCH):
@@ -102,9 +116,9 @@ class DownloadManager(threading.Thread, QObject):
                 print("APK install failed.")
             self.appmgr.apk_process.emit(self.appname, 'apt', AppActions.INSTALL, -1, 'install apk failed')
 
-
-
-
+    #
+    # 函数：安装图标和desktop文件
+    #
     # tmp目录下创建desktop文件，再转移到个人目录
     def install_icon_desktop(self):
         # 创建desktop文件

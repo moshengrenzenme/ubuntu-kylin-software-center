@@ -28,13 +28,20 @@ from PyQt5.QtCore import *
 from models.globals import Globals
 
 import gettext
-gettext.textdomain("ubuntu-kylin-software-center")
+import os
+LOCALE = os.getenv("LANG")
+if "bo" in LOCALE:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale-langpack")
+    gettext.textdomain("kylin-software-center")
+else:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale")
+    gettext.textdomain("ubuntu-kylin-software-center")
 _ = gettext.gettext
 class SingleProcessBar(QWidget):
 
     def __init__(self, parent=None):
         QWidget.__init__(self,parent)
-        self.setGeometry(103, 220, 150, 65) #815 / 2 - 96, 417,
+        self.setGeometry(88, 220, 150, 65) #815 / 2 - 96, 417,
         self.setWindowFlags(Qt.FramelessWindowHint)
 
         self.updatelabel = QLabel(self)
@@ -56,9 +63,17 @@ class SingleProcessBar(QWidget):
 
         self.hide()
 
+    #
+    # 函数名:改变数值
+    # Function: change value
+    # 
     def value_change(self, percent):
         if percent <= 100:
             self.progressBar.setValue(percent)
 
+    #
+    # 函数名:更新控件本文内容
+    # Function: update control text
+    # 
     def set_updatelabel_text(self, text):
         self.updatelabel.setText(text)

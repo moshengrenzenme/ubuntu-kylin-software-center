@@ -30,9 +30,17 @@ from utils import commontools
 from models.enums import Signals, setLongTextToElideFormat, PkgStates, AppActions
 from models.globals import Globals
 from models.apkinfo import ApkInfo
+from models.application import Application
 
 import gettext
-gettext.textdomain("ubuntu-kylin-software-center")
+import os
+LOCALE = os.getenv("LANG")
+if "bo" in LOCALE:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale-langpack")
+    gettext.textdomain("kylin-software-center")
+else:
+    gettext.bindtextdomain("ubuntu-kylin-software-center", "/usr/share/locale")
+    gettext.textdomain("ubuntu-kylin-software-center")
 _ = gettext.gettext
 
 class RcmdCard(QWidget,Signals):
@@ -54,6 +62,11 @@ class RcmdCard(QWidget,Signals):
         self.ui.btn.setFocusPolicy(Qt.NoFocus)
         self.ui.btnDetail.setFocusPolicy(Qt.NoFocus)
         self.ui.btnDetail.setStyleSheet("QPushButton{border:0px;background-color:transparent;}")
+
+        self.ui.btnCancel.setFocusPolicy(Qt.NoFocus)
+        self.ui.btnCancel.setStyleSheet("QPushButton{background-image:url('res/cancel_1.png');border:0px;}QPushButton:hover{background:url('res/cancel_2.png');}QPushButton:pressed{background:url('res/cancel_2.png');}")
+        self.ui.btnCancel.raise_()
+        self.ui.btnCancel.clicked.connect(self.slot_click_cancel)
 
         # self.ui.btnDetail.setCursor(Qt.PointingHandCursor)
 
@@ -92,7 +105,7 @@ class RcmdCard(QWidget,Signals):
         # shadowe.setColor(Qt.gray)
         # shadowe.setBlurRadius(4)
         # self.setGraphicsEffect(shadowe)
-
+       # self.ui.btnCancel.hide()
         iconpath = commontools.get_icon_path(self.app.name)
         self.ui.icon.setStyleSheet("QLabel{background-image:url('" + iconpath + "');background-color:transparent;}")
         self.ui.progressBar_icon.setStyleSheet("QLabel{background-color:transparent;background-image:url('" + iconpath + "')}")
@@ -100,7 +113,7 @@ class RcmdCard(QWidget,Signals):
 
         # self.ui.baseWidget.setStyleSheet("QWidget{border:0px;}")
         self.ui.name.setStyleSheet("QLabel{font-size:14px;color:#000000;background-color:transparent;}")
-        # self.ui.progressBarname.setStyleSheet("QLabel{font-size:13px;font-weight:bold;color:#666666;background:transparent;}")
+        self.ui.progressBarname.setStyleSheet("QLabel{font-size:14px;color:#000000;background-color:transparent;}")
         # self.ui.named.setStyleSheet("QLabel{font-size:13px;font-weight:bold;color:#666666;}")
         self.ui.size.setStyleSheet("QLabel{font-size:13px;color:#888888;background-color:transparent;}")
         self.ui.progresslabel.setStyleSheet("QLabel{font-size:13px;color:#888888;background-color:transparent;}")
@@ -126,6 +139,8 @@ class RcmdCard(QWidget,Signals):
         # convert size
         # installedsize = self.app.installedSize
         installedsize = self.app.packageSize
+        if installedsize == 0:
+            installedsize=app.installedSize
         installedsizek = installedsize / 1024
         if(installedsizek == 0):
             #self.ui.size.setText("未知")
@@ -135,16 +150,25 @@ class RcmdCard(QWidget,Signals):
         else:
             self.ui.size.setText(str('%.2f'%(installedsizek/1024.0)) + " MB")
 
+        if self.app.displayname != '' and self.app.displayname is not None and self.app.displayname != 'None':
+            text = setLongTextToElideFormat(self.ui.name, self.app.displayname_cn)
+            # self.ui.name.setText(self.app.displayname_cn)
+            if str(text).endswith("…") is True:
+                self.ui.name.raise_()
+                self.ui.name.setToolTip(self.app.displayname_cn)
+            else:
+                self.ui.name.setToolTip("")
+
         # self.ui.name.setText(self.app.displayname)
         # self.ui.named.setText(self.app.displayname)
         # add by kobe
         if self.app.displayname_cn != '' and self.app.displayname_cn is not None and self.app.displayname_cn != 'None':
             setLongTextToElideFormat(self.ui.name, self.app.displayname_cn)
-            # setLongTextToElideFormat(self.ui.progressBarname, self.app.displayname_cn)
+            setLongTextToElideFormat(self.ui.progressBarname, self.app.displayname_cn)
             # setLongTextToElideFormat(self.ui.named, self.app.displayname_cn)
         else:
             setLongTextToElideFormat(self.ui.name, self.app.displayname)
-            # setLongTextToElideFormat(self.ui.progressBarname, self.app.displayname)
+            setLongTextToElideFormat(self.ui.progressBarname, self.app.displayname)
             # setLongTextToElideFormat(self.ui.named, self.app.displayname)
         # if self.app.summary is not None and self.app.summary != 'None' and self.app.summary != '':
             # self.ui.description.setText(self.app.summary)
@@ -168,15 +192,14 @@ class RcmdCard(QWidget,Signals):
 
         if self.app.status == PkgStates.INSTALLING:
             self.ui.btn.setEnabled(False)
-            # if self.app.percent > 0:
             #     self.ui.btn.setText("正在安装")
             # else:
             #     self.ui.btn.setText("等待安装")
             if(Globals.MIPS64):
-                self.ui.progressBar.setQPushButtonStyleSheet("QProgressBar{background-color:#ffffff;border:0px;border-radius:0px;}")
+                self.ui.progressBar.setStyleSheet("QProgressBar{background-color:#ffffff;border:0px;border-radius:0px;}")
                 self.ui.progressBarsmall.setStyleSheet("QProgressBar{background-color:#e5e5e5;border:0px;border-radius:0px;}")
             else:
-                self.ui.progressBar.setQPushButtonStyleSheet("QProgressBar{background-color:#ffffff;border:0px;border-radius:0px;}"
+                self.ui.progressBar.setStyleSheet("QProgressBar{background-color:#ffffff;border:0px;border-radius:0px;}"
                                              "QProgressBar:chunk{background-color:#d5e8f9;}")
                 self.ui.progressBarsmall.setStyleSheet("QProgressBar{background-color:#e5e5e5;border:0px;border-radius:0px;}"
                                              "QProgressBar:chunk{background-color:#2d8ae1;}")
@@ -397,6 +420,9 @@ class RcmdCard(QWidget,Signals):
             self.ui.progresslabel.setVisible(True)
             self.ui.progressBar_icon.setVisible(True)
             if status == AppActions.INSTALL:
+                if isinstance(self.app,Application):
+                    if percent >=0:
+                        self.ui.btnCancel.hide()
                 #self.ui.btn.setText("正在安装")
                 self.ui.btn.setText(_("Waiting for installation"))
                 if(Globals.MIPS64):
@@ -410,6 +436,8 @@ class RcmdCard(QWidget,Signals):
                 self.ui.progresslabel.setStyleSheet("QLabel{font-size:12px;color:#2d8ae1;background-color:transparent;}")
             elif status == AppActions.UPGRADE:
                 #self.ui.btn.setText("正在升级")
+                if percent>=100:
+                    self.ui.btnCancel.hide()
                 self.ui.btn.setText(_("upgrading"))
                 if(Globals.MIPS64):
                     self.ui.progressBar.setStyleSheet("QProgressBar{background-color:#ffffff;border:0px;border-radius:0px;}")
@@ -422,6 +450,7 @@ class RcmdCard(QWidget,Signals):
                 self.ui.progresslabel.setStyleSheet("QLabel{font-size:12px;color:#07c30b;background-color:transparent;}")
             elif status == AppActions.REMOVE:
                 #self.ui.btn.setText("正在卸载")
+                self.ui.btnCancel.hide()
                 self.ui.btn.setText(_("Uninstalling"))
                 if(Globals.MIPS64):
                     self.ui.progressBar.setStyleSheet("QProgressBar{background-color:#ffffff;border:0px;border-radius:0px;}")
@@ -450,6 +479,7 @@ class RcmdCard(QWidget,Signals):
             self.ui.progresslabel.setVisible(False)
             self.ui.progressBar_icon.setVisible(False)
             self.ui.progressBar.setVisible(False)
+            self.ui.btnCancel.show()
             self.ui.progressBar.reset()
             self.ui.progressBarsmall.reset()
 
@@ -458,13 +488,14 @@ class RcmdCard(QWidget,Signals):
             self.ui.progresslabel.setVisible(False)
             self.ui.progressBar_icon.setVisible(False)
             self.ui.progressBar.setVisible(False)
+            self.ui.btnCancel.show()
             self.ui.progressBar.reset()
             self.ui.progressBarsmall.reset()
 
     # kobe 1106
     def slot_change_btn_status(self, pkgname, status):
         if self.app.name == pkgname:
-            self.ui.btn.setEnabled(False)
+           # self.ui.btn.setEnabled(False)
             if status == PkgStates.INSTALLING:
                 self.app.status = PkgStates.INSTALLING
                 if self.app.percent > 0:
@@ -502,6 +533,8 @@ class RcmdCard(QWidget,Signals):
             if not Globals.APK_EVNRUN:
                 self.rcmdcard_kydroid_envrun.emit()
             else:
+                if Globals.DEFT == True:
+                    self.app.status = PkgStates.INSTALL
                 self.show_app_detail.emit(self.app)
         else:
             self.show_app_detail.emit(self.app)
@@ -553,8 +586,8 @@ class RcmdCard(QWidget,Signals):
                     # self.ui.btnDetail.setStyleSheet("QPushButton{border:0px;background-image:url('res/ncard-run-border.png');}")
 
     def slot_work_cancel(self, pkgname, action):
-        if self.app.name == pkgname:
 
+        if self.app.name == pkgname:
             if action == AppActions.INSTALL:
                 self.app.status = PkgStates.INSTALL
                 # self.star.show()
@@ -578,6 +611,7 @@ class RcmdCard(QWidget,Signals):
                     #self.ui.btn.setText("启动")
                     self.ui.btn.setText(_("Start"))
                     self.app.status = PkgStates.RUN
+                    self.ui.btn.setEnabled(True)
                     self.ui.btn.setStyleSheet("QPushButton{font-size:12px;color:#000000;border:1px solid #d5d5d5;background-color:#ffffff;}QPushButton:hover{font-size:12px;color:#ffffff;border:1px solid #d5d5d5;background-color:#2d8ae1;}QPushButton:pressed{font-size:12px;color:#ffffff;border:1px solid #d5d5d5;background-color:#2d8ae1;}")
                     # self.ui.btnDetail.setStyleSheet("QPushButton{border:0px;background-image:url('res/ncard-run-border.png');}")
 
@@ -612,6 +646,28 @@ class RcmdCard(QWidget,Signals):
                     self.ui.btn.setEnabled(True)
                     self.ui.btn.setStyleSheet("QPushButton{font-size:12px;color:#000000;border:1px solid #d5d5d5;background-color:#ffffff;}QPushButton:hover{font-size:12px;color:#ffffff;border:1px solid #d5d5d5;background-color:#2d8ae1;}QPushButton:pressed{font-size:12px;color:#ffffff;border:1px solid #d5d5d5;background-color:#2d8ae1;}")
                     # self.ui.btnDetail.setStyleSheet("QPushButton{border:0px;background-image:url('res/ncard-install-border.png');}")
+
+                        #
+    # 函数名:点击取消
+    # Function:click cancel
+    #
+    def slot_click_cancel(self):
+        Globals.TASK_LIST.append(self.app.name)
+        self.ui.progresslabel.setVisible(False)
+        self.ui.progressBar_icon.setVisible(False)
+        self.ui.progressBar.setVisible(False)
+        self.ui.btn.setEnabled(True)
+        if self.ui.btn.text()==(_("Install")):
+            self.nomol_cancel.emit(self.app, "install")
+        else:
+            self.nomol_cancel.emit(self.app, "upgrade")
+
+        # self.cancel_task_list()
+        self.connct_cancel.emit(self.app.name)
+        self.signale_set.emit("download_apk",self.app)
+        self.set_detail_install.emit()
+
+        # self.apk_nocard_cancel.emit()
 
             #
             # if self.app.percent < 0:

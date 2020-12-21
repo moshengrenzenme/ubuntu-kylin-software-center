@@ -36,10 +36,12 @@ cmdclass ={
 
 
 data_files=[
-    ('bin/', ['ubuntu-kylin-software-center']),
-    ('../etc/dbus-1/system.d/', ['backend/aptdaemon/conf/com.ubuntukylin.softwarecenter.conf']),
-    ('share/dbus-1/system-services/', ['backend/aptdaemon/conf/com.ubuntukylin.softwarecenter.service']),
-    ('share/polkit-1/actions/', ['backend/aptdaemon/conf/com.ubuntukylin.softwarecenter.policy']),
+    ('bin/', ['kylin-software-center']),
+    ('../etc/dbus-1/system.d/', ['backend/aptdaemon/conf/com.kylin.softwarecenter.conf']),
+    ('share/dbus-1/system-services/', ['backend/aptdaemon/conf/com.kylin.softwarecenter.service']),
+    ('share/polkit-1/actions/', ['backend/aptdaemon/conf/com.kylin.softwarecenter.policy']),
+    ('../etc/dbus-1/system.d/', ['backend/watchdog/com.kylin.watchdog.conf']),
+    ('share/dbus-1/system-services/', ['backend/watchdog/com.kylin.watchdog.service']),
 #    ('lib/python3/dist-packages/ubuntu-kylin-software-center-daemon/', glob.glob('backend/aptdaemon/dbus_service')),
     ('share/applications/',['ubuntu-kylin-software-center.desktop']),
     ('share/pixmaps/',['ubuntu-kylin-software-center.svg']),
@@ -72,6 +74,10 @@ data_files=[
     # ('../etc/xdg/autostart/',['ubuntu-kylin-software-center-autostart.desktop']),
     ]
 
+#
+# 函数名:找.mo文件
+# Function: find .mo file
+# 
 def find_mo_files():
     data_files = []
     for mo in glob.glob(os.path.join(PO_DIR, '*', 'ubuntu-kylin-software-center.mo')):
@@ -90,7 +96,7 @@ setup(name="ubuntu-kylin-software-center",
     author_email="ubuntukylin-members@list.launchpad.net",
     url="https://launchpad.net/ubuntu-kylin-software-center",
     license="GNU General Public License (GPL)",
-    packages = [ 'ubuntu_kylin_software_center_daemon',],
+    packages = [ 'ubuntu_kylin_software_center_daemon', 'ubuntu_kylin_software_center_watchdog',],
     package_dir = {
         '': '.',
     },

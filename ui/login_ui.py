@@ -223,6 +223,7 @@ class Ui_Login_ui(object):
         font.setPointSize(10)
         self.checkBox_4.setFont(font)
         self.checkBox_4.setObjectName(_fromUtf8("checkBox_4"))
+        self.checkBox_4.hide()
 
         # self.text4 = QLabel(self.groupBox_2)
         # self.text4.setGeometry(QtCore.QRect(55, 90, 40, 25))
@@ -240,7 +241,8 @@ class Ui_Login_ui(object):
         self.text7 = QLabel(self.groupBox_2)
         self.text7.setGeometry(QtCore.QRect(100, 198, 120, 25))
         self.text7.setText(_fromUtf8(""))
-        self.text7.setObjectName(_fromUtf8("text7"))        
+        self.text7.setObjectName(_fromUtf8("text7"))
+        self.text7.hide()
         self.btnAdd_4 = QPushButton(self.groupBox_2)
         self.btnAdd_4.setGeometry(QtCore.QRect(71, 240,300, 32))
         self.btnAdd_4.setText(_fromUtf8(""))
@@ -286,6 +288,10 @@ class Ui_Login_ui(object):
         self.retranslateUi(Login_ui)
         QtCore.QMetaObject.connectSlotsByName(Login_ui)
 
+    #
+    # 函数名:设置窗口标题
+    # Function:set window title
+    # 
     def retranslateUi(self, Login_ui):
         Login_ui.setWindowTitle(_translate("Login_ui", "Form", None))
 
